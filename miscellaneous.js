@@ -35,7 +35,7 @@ NodeList.prototype.oClick = function(c) { this.forEach((i) => i.onclick = c) };
 NodeList.prototype.oHover = function(e, l) { this.forEach((i) => { i.onmouseenter = e, i.onmouseleave = l ? l : e; }) };
 /*Add/Subtract dates from string*/
 String.prototype.tDate = function(i, o) {
-	let date = new Date(this[0].split('-'));
+	let date = new Date(this.split('-'));
 	i && date.setDate(date.getDate() + i);
 	return o ? date : date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, 0) + '-' + String(date.getDate()).padStart(2, 0);
 };
