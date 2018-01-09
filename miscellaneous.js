@@ -32,5 +32,5 @@ NodeList.prototype.oHover = function(e, l) { this.forEach((i) => { i.onmouseente
 String.prototype.tDate = function(i, o) {
 	let date = new Date(this[0].split('-'));
 	i && date.setDate(date.getDate() + i);
-	return 0 ? date : date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, 0) + '-' + String(date.getDate()).padStart(2, 0)
+	return o ? date : date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, 0) + '-' + String(date.getDate()).padStart(2, 0);
 };
