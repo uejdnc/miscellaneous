@@ -2,10 +2,18 @@
 QS = Shortcut of querySelector
 QSA = Shortcut of querySelectorAll
 today = Today's date on string
+diffDate = Difference in days from two strings
 */
 var QS = (e, p) => (p ? p : document).querySelector(e),
 	QSA = (e, p) => (p ? p : document).querySelectorAll(e),
-	today = () => { return new Date().toJSON().slice(0, 10) };
+	today = () => { return new Date().toJSON().slice(0, 10) },
+	diffDate = (i, f, amount = (1000 * 3600 * 24)) => {
+		let date1 = new Date(i),
+			date2 = new Date(f),
+			timeDiff = Math.abs(date2.getTime() - date1.getTime());
+
+		return Math.ceil(timeDiff / amount);
+	};
 
 /*Append or prepend data to elemet*/
 Node.prototype.paste = function(t, p) { this.innerHTML = p ? t + this.innerHTML : this.innerHTML + t };
