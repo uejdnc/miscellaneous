@@ -23,14 +23,14 @@ Node.prototype.tClass = function(c) {
 	else this.classList.add(c);
 };
 /*Remove elements from NodeList*/
-NodeList.prototype.removes = function(c) {
-	this.forEach((i) => i.remove());
-};
+NodeList.prototype.removes = function(c) { this.forEach((i) => i.remove()) };
 /*Add onclick to elements from NodeList*/
-NodeList.prototype.oClick = function(c) {
-	this.forEach((i) => i.onclick = c);
-};
+NodeList.prototype.oClick = function(c) { this.forEach((i) => i.onclick = c) };
 /*Add mouseenter and mouseleave to elements from NodeList*/
-NodeList.prototype.oHover = function(e, l) {
-	this.forEach((i) => { i.onmouseenter = e, i.onmouseleave = l ? l : e; });
+NodeList.prototype.oHover = function(e, l) { this.forEach((i) => { i.onmouseenter = e, i.onmouseleave = l ? l : e; }) };
+/*Add/Subtract dates from string*/
+String.prototype.tDate = function(i, o) {
+	let date = new Date(this[0].split('-'));
+	i && date.setDate(date.getDate() + i);
+	return 0 ? date : date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, 0) + '-' + String(date.getDate()).padStart(2, 0)
 };
