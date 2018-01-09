@@ -1,3 +1,4 @@
+/*Shortcuts to querySelector and querySelectorAll*/
 var QS = (e, p) => (p ? p : document).querySelector(e),
 	QSA = (e, p) => (p ? p : document).querySelectorAll(e);
 
