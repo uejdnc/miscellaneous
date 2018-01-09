@@ -1,6 +1,11 @@
-/*Shortcuts to querySelector and querySelectorAll*/
+/*
+QS = Shortcut of querySelector
+QSA = Shortcut of querySelectorAll
+today = Today's date on string
+*/
 var QS = (e, p) => (p ? p : document).querySelector(e),
-	QSA = (e, p) => (p ? p : document).querySelectorAll(e);
+	QSA = (e, p) => (p ? p : document).querySelectorAll(e),
+	today = () => { return new Date().toJSON().slice(0, 10) };
 
 /*Append or prepend data to elemet*/
 Node.prototype.paste = function(t, p) { this.innerHTML = p ? t + this.innerHTML : this.innerHTML + t };
