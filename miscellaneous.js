@@ -41,11 +41,16 @@ NodeList.prototype.removes = function(c) { this.forEach((i) => i.remove()) };
 NodeList.prototype.oClick = function(c) { this.forEach((i) => i.onclick = c) };
 /*Add mouseenter and mouseleave to elements from NodeList*/
 NodeList.prototype.oHover = function(e, l) { this.forEach((i) => { i.onmouseenter = e, i.onmouseleave = l ? l : e; }) };
-/*Add/Subtract dates from string*/
+/*Add/Subtract days from string*/
 String.prototype.tDate = function(i, o) {
 	let date = new Date(this.split('-'));
 	i && date.setDate(date.getDate() + i);
 	return o ? date : date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, 0) + '-' + String(date.getDate()).padStart(2, 0);
+};
+/*Add/Subtract days from date*/
+Object.prototype.tDate = function(i, o) {
+	i && i.setDate(i.getDate() + i);
+	return o ? i : i.getFullYear() + '-' + String(i.getMonth() + 1).padStart(2, 0) + '-' + String(i.getDate()).padStart(2, 0);
 };
 /*If is a valid date*/
 String.prototype.iDate = function(i, o) { return (new Date(this) == 'Invalid Date') ? false : true };
