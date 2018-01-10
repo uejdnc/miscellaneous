@@ -31,8 +31,9 @@ Node.prototype.aClass = function(c) { this.classList.add(c) };
 /*Remove class shortcut*/
 Node.prototype.rClass = function(c) { this.classList.remove(c) };
 /*Toggle class shortcut*/
-Node.prototype.tClass = function(c) {
-	if (this.hClass(c)) this.classList.remove(c);
+Node.prototype.tClass = function(c, t) {
+	let cond = (t === undefined) ? this.hClass(c) : !t;
+	if (cond) this.classList.remove(c);
 	else this.classList.add(c);
 };
 /*Remove elements from NodeList*/
