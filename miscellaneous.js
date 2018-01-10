@@ -43,8 +43,8 @@ NodeList.prototype.oClick = function(c) { this.forEach(i => i.onclick = c) };
 /*Add mouseenter and mouseleave to elements from NodeList*/
 NodeList.prototype.oHover = function(e, l) { this.forEach((i) => { i.onmouseenter = e, i.onmouseleave = l || e; }) };
 /*Add/Subtract days from string or object*/
-Object.prototype.tDate = String.prototype.tDate = function(i, o) {
-	let date = (typeof this === 'string' || this instanceof String) ? new Date(this.split('-')) : this;
+String.prototype.tDate = function(i, o) {
+	let date = new Date(this.split('-'));
 	if (i) date.setDate(date.getDate() + i);
 	return o ? date : date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, 0) + '-' + String(date.getDate()).padStart(2, 0);
 };
