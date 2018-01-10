@@ -50,8 +50,9 @@ String.prototype.tDate = function(i, o) {
 };
 /*Add/Subtract days from date*/
 Object.prototype.tDate = function(i, o) {
-	i && this.setDate(i.getDate() + i);
-	return o ? this : this.getFullYear() + '-' + String(this.getMonth() + 1).padStart(2, 0) + '-' + String(this.getDate()).padStart(2, 0);
+	let date = new Date(this);
+	i && date.setDate(date.getDate() + i);
+	return o ? date : date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, 0) + '-' + String(date.getDate()).padStart(2, 0);
 };
 /*If is a valid date*/
 String.prototype.iDate = function(i, o) { return (new Date(this) == 'Invalid Date') ? false : true };
