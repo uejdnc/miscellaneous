@@ -37,21 +37,15 @@ Node.prototype.tClass = function(c, t) {
 	else this.classList.add(c);
 };
 /*Remove elements from NodeList*/
-NodeList.prototype.removes = function(c) { this.forEach((i) => i.remove()) };
+NodeList.prototype.removes = function(c) { this.forEach(i => i.remove()) };
 /*Add onclick to elements from NodeList*/
-NodeList.prototype.oClick = function(c) { this.forEach((i) => i.onclick = c) };
+NodeList.prototype.oClick = function(c) { this.forEach(i => i.onclick = c) };
 /*Add mouseenter and mouseleave to elements from NodeList*/
-NodeList.prototype.oHover = function(e, l) { this.forEach((i) => { i.onmouseenter = e, i.onmouseleave = l ? l : e; }) };
-/*Add/Subtract days from string*/
-String.prototype.tDate = function(i, o) {
-	let date = new Date(this.split('-'));
-	i && date.setDate(date.getDate() + i);
-	return o ? date : date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, 0) + '-' + String(date.getDate()).padStart(2, 0);
-};
-/*Add/Subtract days from date*/
-Object.prototype.tDate = function(i, o) {
-	let date = new Date(this);
-	i && date.setDate(date.getDate() + i);
+NodeList.prototype.oHover = function(e, l) { this.forEach((i) => { i.onmouseenter = e, i.onmouseleave = l || e; }) };
+/*Add/Subtract days from string or object*/
+Object.prototype.tDate = String.prototype.tDate = function(i, o) {
+	let date = (typeof this === 'string' || this instanceof String) ? new Date(this.split('-')) : this;
+	if (i) date.setDate(date.getDate() + i);
 	return o ? date : date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, 0) + '-' + String(date.getDate()).padStart(2, 0);
 };
 /*If is a valid date*/
