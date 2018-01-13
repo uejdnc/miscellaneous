@@ -54,3 +54,12 @@ Date.prototype.DtoS = function() {
 }
 /*If is a valid date*/
 String.prototype.iDate = function(i, o) { return new Date(this) != 'Invalid Date' };
+/*If string is valid JSON*/
+function isJSON(str) {
+	try {
+		JSON.parse(str);
+	} catch (e) {
+		return false;
+	}
+	return true;
+}
