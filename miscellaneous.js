@@ -3,6 +3,7 @@ QS = Shortcut of querySelector
 QSA = Shortcut of querySelectorAll
 today = Today's date on string
 diffDate = Difference in days from two strings
+isJSON = If string is valid JSON
 */
 var QS = (e, p) => (p ? p : document).querySelector(e),
 	QSA = (e, p) => (p ? p : document).querySelectorAll(e),
@@ -13,7 +14,15 @@ var QS = (e, p) => (p ? p : document).querySelector(e),
 			timeDiff = Math.abs(date2.getTime() - date1.getTime());
 
 		return Math.ceil(timeDiff / amount);
-	};
+	},
+	isJSON = (str) => {
+		try {
+			JSON.parse(str);
+		} catch (e) {
+			return false;
+		}
+		return true;
+	}
 
 /*Append or prepend data to elemet*/
 Node.prototype.paste = function(t, p) { this.innerHTML = p ? t + this.innerHTML : this.innerHTML + t };
@@ -30,6 +39,8 @@ Node.prototype.hClass = function(c) { return (this) ? this.classList.contains(c)
 Node.prototype.aClass = function(c) { this.classList.add(c) };
 /*Remove class shortcut*/
 Node.prototype.rClass = function(c) { this.classList.remove(c) };
+/*Switch class shortcut*/
+Node.prototype.sClass = function(r, a, s) { this.classList.remove(s ? a : r), this.classList.add(s ? r : a) };
 /*Toggle class shortcut*/
 Node.prototype.tClass = function(c, t) {
 	let cond = (t === undefined) ? this.hClass(c) : !t;
@@ -42,6 +53,17 @@ NodeList.prototype.removes = function(c) { this.forEach(i => i.remove()) };
 NodeList.prototype.oClick = function(c) { this.forEach(i => i.onclick = c) };
 /*Add mouseenter and mouseleave to elements from NodeList*/
 NodeList.prototype.oHover = function(e, l) { this.forEach((i) => { i.onmouseenter = e, i.onmouseleave = l || e; }) };
+/*Multiple events (click, input, etc) to Node*/
+Node.prototype.oevent = function(e, f) {
+	let that = this,
+		events = e.trim().split(' ');
+	for (let evt in events) that[evt] = e;
+}
+/*Multiple events (click, input, etc) to NodeList*/
+NodeList.prototype.oEvent = function(e, f) {
+	let events = e.trim().split(' ');
+	this.forEach((ele) => { for (let evt in events) ele[evt] = e });
+}
 /*Add/Subtract days from string or object*/
 String.prototype.tDate = function(i, o) {
 	let date = new Date(this.split('-'));
@@ -56,12 +78,3 @@ Date.prototype.DtoS = function() {
 String.prototype.iDate = function(i, o) { return new Date(this) != 'Invalid Date' };
 /*Get element index*/
 Node.prototype.gIndex = function() { return Array.prototype.slice.call(this.parentElement.children).indexOf(this) };
-/*If string is valid JSON*/
-function isJSON(str) {
-	try {
-		JSON.parse(str);
-	} catch (e) {
-		return false;
-	}
-	return true;
-}
