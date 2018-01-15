@@ -25,7 +25,8 @@ var QS = (e, p) => (p ? p : document).querySelector(e),
 	}
 
 /*Append or prepend data to elemet*/
-Node.prototype.paste = function(t, p) { this.innerHTML = p ? t + this.innerHTML : this.innerHTML + t };
+// Node.prototype.paste = function(t, p) { this.innerHTML = p ? t + this.innerHTML : this.innerHTML + t };
+Node.prototype.paste = function(t, p) { this.insertAdjacentHTML(p ? 'afterbegin' : 'beforeend', t) };
 /*Get attribute to element with fallback*/
 Node.prototype.gAttr = function(a, f) { return (this.attributes[a]) ? this.attributes[a].nodeValue : (f ? ((this.attributes[f]) ? this.attributes[f].nodeValue : undefined) : undefined); };
 /*Set attribute to element*/
@@ -57,12 +58,12 @@ NodeList.prototype.oHover = function(e, l) { this.forEach((i) => { i.onmouseente
 Node.prototype.oevent = function(e, f) {
 	let that = this,
 		events = e.trim().split(' ');
-	for (let evt in events) that[evt] = e;
+	for (let evt in events) that[`on${evt}`] = e;
 }
 /*Multiple events (click, input, etc) to NodeList*/
 NodeList.prototype.oEvent = function(e, f) {
 	let events = e.trim().split(' ');
-	this.forEach((ele) => { for (let evt in events) ele[evt] = e });
+	this.forEach((ele) => { for (let evt in events) ele[`on${evt}`] = e });
 }
 /*Add/Subtract days from string or object*/
 String.prototype.tDate = function(i, o) {
@@ -71,9 +72,7 @@ String.prototype.tDate = function(i, o) {
 	return o ? date : date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, 0) + '-' + String(date.getDate()).padStart(2, 0);
 };
 /*Date to string*/
-Date.prototype.DtoS = function() {
-	return this.getFullYear() + '-' + String(this.getMonth() + 1).padStart(2, 0) + '-' + String(this.getDate()).padStart(2, 0);
-}
+Date.prototype.DtoS = function() { return this.getFullYear() + '-' + String(this.getMonth() + 1).padStart(2, 0) + '-' + String(this.getDate()).padStart(2, 0) }
 /*If is a valid date*/
 String.prototype.iDate = function(i, o) { return new Date(this) != 'Invalid Date' };
 /*Get element index*/
