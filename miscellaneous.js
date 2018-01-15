@@ -48,6 +48,19 @@ Node.prototype.tClass = function(c, t) {
 	if (cond) this.classList.remove(c);
 	else this.classList.add(c);
 };
+/*Add class shortcut to NodeList*/
+Node.prototype.maClass = function(c) { this.forEach((e) => e.classList.add(c)) };
+/*Remove class shortcut to NodeList*/
+Node.prototype.mrClass = function(c) { this.forEach((e) => e.classList.remove(c)) };
+/*Switch class shortcut to NodeList*/
+Node.prototype.msClass = function(r, a, s) { this.forEach((e) => e.classList.remove(s ? a : r), e.classList.add(s ? r : a)) };
+/*Toggle class shortcut to NodeList*/
+Node.prototype.mtClass = function(c, t) {
+	let cond = (t === undefined) ? this[0].hClass(c) : !t;
+
+	if (cond) this.forEach((e) => e.classList.remove(c));
+	else this.forEach((e) => e.classList.add(c));
+};
 /*Remove elements from NodeList*/
 NodeList.prototype.removes = function(c) { this.forEach(i => i.remove()) };
 /*Add onclick to elements from NodeList*/
