@@ -58,12 +58,12 @@ NodeList.prototype.oHover = function(e, l) { this.forEach((i) => { i.onmouseente
 Node.prototype.oevent = function(e, f) {
 	let that = this,
 		events = e.trim().split(' ');
-	for (let i in events) that[`on${events[i]}`] = e;
+	for (let i in events) that[`on${events[i]}`] = f;
 }
 /*Multiple events (click, input, etc) to NodeList*/
 NodeList.prototype.oEvent = function(e, f) {
 	let events = e.trim().split(' ');
-	this.forEach((ele) => { for (let i in events) ele[`on${events[i]}`] = e });
+	this.forEach((ele) => { for (let i in events) ele[`on${events[i]}`] = f });
 }
 /*Add/Subtract days from string or object*/
 String.prototype.tDate = function(i, o) {
