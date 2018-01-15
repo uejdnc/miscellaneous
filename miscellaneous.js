@@ -54,6 +54,8 @@ Date.prototype.DtoS = function() {
 }
 /*If is a valid date*/
 String.prototype.iDate = function(i, o) { return new Date(this) != 'Invalid Date' };
+/*Get element index*/
+Node.prototype.gIndex = function() { return Array.prototype.slice.call(this.parentElement.children).indexOf(this) };
 /*If string is valid JSON*/
 function isJSON(str) {
 	try {
