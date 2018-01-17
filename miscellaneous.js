@@ -4,10 +4,17 @@ QSA = Shortcut of querySelectorAll
 today = Today's date on string
 diffDate = Difference in days from two strings
 isJSON = If string is valid JSON
+bTime = Beautify Time
+oSumE = Sum elements in object
 */
 var QS = (e, p) => (p ? p : document).querySelector(e),
 	QSA = (e, p) => (p ? p : document).querySelectorAll(e),
 	today = () => { return new Date().toJSON().slice(0, 10) },
+	oSumE = (o) => { return Object.values(o).reduce((a, b) => parseInt(a) + parseInt(b)) },
+	bTime = t => {
+		t = Math.round(parseInt(t));
+		return (((t > 59) ? parseInt(t / 60) + 'h ' : '') + ((t % 60) ? (t % 60) + '\'' : '')).trim();
+	},
 	diffDate = (i, f, amount = (1000 * 3600 * 24)) => {
 		let date1 = new Date(i),
 			date2 = new Date(f),
@@ -25,7 +32,6 @@ var QS = (e, p) => (p ? p : document).querySelector(e),
 	}
 
 /*Append or prepend data to elemet*/
-// Node.prototype.paste = function(t, p) { this.innerHTML = p ? t + this.innerHTML : this.innerHTML + t };
 Node.prototype.paste = function(t, p) { this.insertAdjacentHTML(p ? 'afterbegin' : 'beforeend', t) };
 /*Get attribute to element with fallback*/
 Node.prototype.gAttr = function(a, f) { return (this.attributes[a]) ? this.attributes[a].nodeValue : (f ? ((this.attributes[f]) ? this.attributes[f].nodeValue : undefined) : undefined); };
