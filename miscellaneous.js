@@ -40,12 +40,13 @@ var QS = (e, p) => (p ? p : document).querySelector(e),
 
 		for (let i in data) { sum += parseInt(data[i][0]) }
 		data.push([sum / 10000, '#666', '']);
-		sum += sum / 10000;
 
-		if (!sum) nulo = 1, sum = 1.0000001, data = [
+		if (!sum) nulo = 1, sum = 1, data = [
 			[1, '#666', ''],
-			[0.01, '#666', '']
+			[sum / 10000, '#666', '']
 		];
+
+		sum += sum / 10000;
 		// else if (cDatos == 1) data.push([0.0001, '#666', '']), sum += 0.0001;
 
 		let deg = sum / 360, // one degree
