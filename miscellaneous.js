@@ -13,7 +13,7 @@ var QS = (e, p) => (p ? p : document).querySelector(e),
 	oSumE = (o) => { return Object.values(o).reduce((a, b) => parseInt(a) + parseInt(b)) },
 	bTime = t => {
 		t = Math.round(parseInt(t));
-		return (((t > 59) ? parseInt(t / 60) + 'h ' : '') + ((t % 60) ? (t % 60) + '\'' : '')).trim();
+		return (((t > 59) ? `${parseInt(t / 60)}h ` : '') + ((t % 60) ? `${(t % 60)}'` : '')).trim() || `${t}'`;
 	},
 	diffDate = (i, f, amount = (1000 * 3600 * 24)) => {
 		let date1 = new Date(i),
@@ -29,7 +29,53 @@ var QS = (e, p) => (p ? p : document).querySelector(e),
 			return false;
 		}
 		return true;
-	}
+	},
+	pieChart = (data, size, container, opacity = 0.6) => {
+		let cx = cy = size / 2,
+			radius = cx - 10,
+			chartelem = '',
+			cDatos = sum = nulo = 0;
+
+		if (!container) container = 'body';
+
+		for (let i in data) { sum += parseInt(data[i][0]) }
+		data.push([sum / 10000, '#666', '']);
+		sum += sum / 10000;
+
+		if (!sum) nulo = 1, sum = 1.0000001, data = [
+			[1, '#666', ''],
+			[0.01, '#666', '']
+		];
+		// else if (cDatos == 1) data.push([0.0001, '#666', '']), sum += 0.0001;
+
+		let deg = sum / 360, // one degree
+			jung = sum / 2, // necessary to test for arc type
+			dx = radius, // Starting point:
+			dy = 0, // first slice starts in the East
+			oldangle = 0;
+
+		/* Loop through the slices */
+		for (let i in data) {
+			let angle = oldangle + data[i][0] / deg, // cumulative angle
+				x = Math.cos(angle * Math.PI / 180.0) * radius, // x of arc's end point
+				y = Math.sin(angle * Math.PI / 180.0) * radius, // y of arc's end point
+				color = data[i][1] || 'red',
+				laf = (data[i][0] > jung) ? 1 : 0, // arc spans more than 180 degrees: 1
+				titulo = nulo ? '' : `${data[i][2]}: ${parseFloat(Math.round((parseFloat(data[i][0])/sum)*100, 1))}%`,
+				ax = cx + x, // absolute x
+				ay = cy + y, // absolute y
+				adx = cx + dx, // absolute dx
+				ady = cy + dy; // absolute dy
+
+			chartelem += `<path d="M${cx},${cy} L${adx},${ady} A${radius},${radius} 0 ${laf},1 ${ax},${ay} z" fill="${color}" stroke="#FFF" stroke-width="2" fill-opacity="${opacity}" stroke-linejoin="round" data-toggle="tooltip" data-container="${container}" data-placement="right" title="${titulo}"/>`;
+
+			dx = x; // old end points become new starting point
+			dy = y; // id.
+			oldangle = angle;
+		}
+
+		return chartelem;
+	};
 
 /*Append or prepend data to elemet*/
 Node.prototype.paste = function(t, p) { this.insertAdjacentHTML(p ? 'afterbegin' : 'beforeend', t) };
