@@ -12,7 +12,7 @@ var QS = (e, p) => (p ? p : document).querySelector(e),
 	today = () => { return new Date().toJSON().slice(0, 10) },
 	oSumE = (o) => { return Object.values(o).reduce((a, b) => parseInt(a) + parseInt(b)) },
 	bTime = t => {
-		t = Math.round(parseInt(t));
+		t = Math.round(parseInt(isNaN(t) ? 0 : t));
 		return (((t > 59) ? `${parseInt(t / 60)}h ` : '') + ((t % 60) ? `${(t % 60)}'` : '')).trim() || `${t}'`;
 	},
 	diffDate = (i, f, amount = (1000 * 3600 * 24)) => {
@@ -29,6 +29,39 @@ var QS = (e, p) => (p ? p : document).querySelector(e),
 			return false;
 		}
 		return true;
+	},
+	sLineChart = (data, orientation, container, sum = 0, dd) => {
+		let lines = '',
+			max = data.length;
+
+
+		if (!orientation) orientation = 'v';
+		if (!container) container = 'body';
+
+		if (!sum) { for (let i in data) sum += data[i][0]; }
+
+		for (let i in data) {
+			let datos = data[i][0],
+				percent = (datos / sum) * 100,
+				percent_nice = (dd == 'percent') ? `${parseFloat(Math.round(percent, 1))}%` : ((dd == 'time') ? bTime(datos) : datos + dd),
+				color = data[i][1],
+				clase = data[i][2],
+				title = data[i][3] + ((data[i][3] && orientation != 'l') ? `: ${percent_nice}` : ''),
+				size = (orientation == 'h') ? 'width' : 'height',
+				placement = (orientation == 'h') ? 'top' : 'right',
+				titleTooltip = title;
+
+			if (color) color = `background-color: ${color};`;
+
+			lines += (orientation == 'l') ? `
+			<div class="${clase}">
+				<div class="line"><div style="${size}: ${percent}%; ${color}">${percent_nice}</div></div>
+				<div class="title" data-toggle="tooltip" data-container="${container}" data-placement="top" title="${titleTooltip}">${title}</div>
+			</div>` : `<div class="${clase}" style="${size}: ${percent}%; ${color}" data-toggle="tooltip" data-container="${container}" data-placement="${placement}" title="${titleTooltip}"></div>
+			`;
+		}
+
+		return lines;
 	},
 	pieChart = (data, size, container, opacity = 0.6) => {
 		let cx = cy = size / 2,
@@ -47,7 +80,6 @@ var QS = (e, p) => (p ? p : document).querySelector(e),
 		];
 
 		sum += sum / 10000;
-		// else if (cDatos == 1) data.push([0.0001, '#666', '']), sum += 0.0001;
 
 		let deg = sum / 360, // one degree
 			jung = sum / 2, // necessary to test for arc type
