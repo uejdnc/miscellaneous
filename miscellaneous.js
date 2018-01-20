@@ -94,7 +94,7 @@ var QS = (e, p) => (p ? p : document).querySelector(e),
 				y = Math.sin(angle * Math.PI / 180.0) * radius, // y of arc's end point
 				color = data[i][1] || 'red',
 				laf = (data[i][0] > jung) ? 1 : 0, // arc spans more than 180 degrees: 1
-				titulo = nulo ? '' : `${data[i][2]}: ${parseFloat(Math.round((parseFloat(data[i][0])/sum)*100, 1))}%`,
+				titulo = nulo ? '' : `${data[i][2]}: ${Math.round(((data[i][0])/sum)*100, 1)}%`,
 				ax = cx + x, // absolute x
 				ay = cy + y, // absolute y
 				adx = cx + dx, // absolute dx
