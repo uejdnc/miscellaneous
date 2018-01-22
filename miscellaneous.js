@@ -43,7 +43,7 @@ var QS = (e, p) => (p ? p : document).querySelector(e),
 		for (let i in data) {
 			let datos = data[i][0],
 				percent = (datos / sum) * 100,
-				percent_nice = (dd == 'percent') ? `${parseFloat(Math.round(percent, 1))}%` : ((dd == 'time') ? bTime(datos) : datos + dd),
+				percent_nice = (dd == 'percent') ? `${Math.round(percent, 1)}%` : ((dd == 'time') ? bTime(datos) : datos + dd),
 				color = data[i][1],
 				clase = data[i][2],
 				title = data[i][3] + ((data[i][3] && orientation != 'l') ? `: ${percent_nice}` : ''),
