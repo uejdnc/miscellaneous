@@ -130,8 +130,8 @@ Node.prototype.sClass = function(r, a, s) { this.classList.remove(...(s ? a : r)
 /*Toggle class shortcut*/
 Node.prototype.tClass = function(c, t) {
 	let cond = (t === undefined) ? this.hClass(c) : !t;
-	if (cond) this.classList.remove(...c.split(' '));
-	else this.classList.add(...c.split(' '));
+	if (cond) this.rClass(c);
+	else this.aClass(c);
 };
 /*Add class shortcut to NodeList*/
 NodeList.prototype.maClass = function(c) { this.forEach((e) => e.aClass(c)) };
