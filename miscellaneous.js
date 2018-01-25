@@ -110,18 +110,17 @@ var QS = (e, p) => (p ? p : document).querySelector(e),
 		return chartelem;
 	},
 	ajax = (d) => {
-		let xhttp = new XMLHttpRequest();
+		let xhttp = new XMLHttpRequest(),
+			data = d.form || '';
 		xhttp.onreadystatechange = function() {
 			(d.done || (() => ''))(this);
 		};
 
 		xhttp.open(d.method || 'POST', d.url, d.async || true);
 		xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-		if (d.data) {
-			let data = '';
-			for (key in d.data) data += encodeURIComponent(key) + "=" + encodeURIComponent(d.data[key]) + "&";
-			xhttp.send(data);
-		}
+		if (d.data && !data) { for (key in d.data) data += encodeURIComponent(key) + "=" + encodeURIComponent(d.data[key]) + "&" }
+
+		xhttp.send(data);
 	};
 
 /*Append or prepend data to elemet*/
