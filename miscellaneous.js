@@ -111,11 +111,12 @@ var QS = (e, p) => (p ? p : document).querySelector(e),
 	},
 	ajax = (d) => {
 		let xhttp = new XMLHttpRequest(),
-			data = new URLSearchParams(new FormData(d.form)).toString() || '';
+			contentType = (d.contentType == undefined) ? true : d.contentType,
+			data = (contentType ? new URLSearchParams(new FormData(d.form)).toString() : d.form) || '';
 		xhttp.onreadystatechange = function() { if (this.readyState == 4 && this.status == 200)(d.done || (() => ''))(this.responseText) };
 
 		xhttp.open(d.method || 'POST', d.url, d.async || true);
-		xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+		if (contentType) xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 		if (d.data && !data) { for (key in d.data) data += encodeURIComponent(key) + "=" + encodeURIComponent(d.data[key]) + "&" }
 
 		xhttp.send(data);
