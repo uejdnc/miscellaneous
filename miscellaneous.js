@@ -112,7 +112,7 @@ var QS = (e, p) => (p ? p : document).querySelector(e),
 	ajax = (d) => {
 		let xhttp = new XMLHttpRequest(),
 			data = d.form || '';
-		xhttp.onreadystatechange = function() { if (data.readyState == 4 && data.status == 200)(d.done || (() => ''))(this) };
+		xhttp.onreadystatechange = function() { if (data.readyState == 4 && data.status == 200)(d.done || (() => ''))(this.responseText) };
 
 		xhttp.open(d.method || 'POST', d.url, d.async || true);
 		xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
