@@ -132,7 +132,13 @@ Node.prototype.sAttr = function(a, v) {
 	else this.setAttribute(a, v);
 };
 /*Has class shortcut*/
-Node.prototype.hClass = function(c) { return (this) ? this.classList.contains(c) : ''; };
+// Node.prototype.hClass = function(c) { return (this) ? this.classList.contains(c) : ''; };
+Node.prototype.hClass = function(c) {
+	let that = this,
+		cond = true;
+	c.split(' ').every(cl => cond = that.classList.contains(cl) ? cond : false);
+	return cond;
+};
 /*Add class shortcut*/
 Node.prototype.aClass = function(c) { this.classList.add(...c.split(' ')) };
 /*Remove class shortcut*/
