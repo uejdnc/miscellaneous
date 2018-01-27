@@ -133,10 +133,10 @@ Node.prototype.sAttr = function(a, v) {
 };
 /*Has class shortcut*/
 // Node.prototype.hClass = function(c) { return (this) ? this.classList.contains(c) : ''; };
-Node.prototype.hClass = function(c) {
+Node.prototype.hClass = function(c, t) {
 	let that = this,
 		cond = true;
-	c.split(' ').every(cl => cond = that.classList.contains(cl) ? cond : false);
+	c.split(' ').every(cl => cond = t ? (that.classList.contains(cl) ? true : cond) : (that.classList.contains(cl) ? cond : false));
 	return cond;
 };
 /*Add class shortcut*/
