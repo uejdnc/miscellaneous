@@ -187,8 +187,3 @@ Date.prototype.DtoS = function() { return this.getFullYear() + '-' + String(this
 String.prototype.iDate = function(i, o) { return new Date(this) != 'Invalid Date' };
 /*Get element index*/
 Node.prototype.gIndex = function() { return Array.prototype.slice.call(this.parentElement.children).indexOf(this) };
-/*Get element by index*/
-NodeList.prototype.iElement = function(i) {
-	Array.prototype.slice.call(this.parentElement.children).indexOf(this)
-	return Array.prototype.slice.call(this.parentElement.children).indexOf(this)
-};
