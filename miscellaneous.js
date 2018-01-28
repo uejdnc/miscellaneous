@@ -134,9 +134,9 @@ Node.prototype.sAttr = function(a, v) {
 /*Has class shortcut*/
 Node.prototype.hClass = function(c, t) {
 	let that = this,
-		cond = t ? false : true;
-	c.split(' ').every(cl => cond = t ? (that.classList.contains(cl) ? true : cond) : (that.classList.contains(cl) ? cond : false));
-	return cond;
+		cond = { 't': false, 'f': false };
+	c.split(' ').every(cl => cond[(that.classList.contains(cl) ? 't' : 'f')] = true);
+	return t ? cond.t : !cond.f;
 };
 /*Add class shortcut*/
 Node.prototype.aClass = function(c) { this.classList.add(...c.split(' ')) };
