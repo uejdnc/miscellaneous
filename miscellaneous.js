@@ -158,6 +158,8 @@ NodeList.prototype.mrClass = function(c) { this.forEach((e) => e.rClass(c)) };
 NodeList.prototype.msClass = function(r, a, s) { this.forEach((e) => e.sClass(r, a, s)) };
 /*Toggle class shortcut to NodeList*/
 NodeList.prototype.mtClass = function(c, t) { this.forEach((e) => e.tClass(c, t)) };
+/*Set attribute to NodeList*/
+NodeList.prototype.msAttr = function(a, v) { this.forEach(e => e.sAttr(a, v)) };
 /*Remove elements from NodeList*/
 NodeList.prototype.removes = function(c) { this.forEach(i => i.remove()) };
 /*Add onclick to elements from NodeList*/
