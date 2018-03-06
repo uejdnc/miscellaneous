@@ -137,7 +137,26 @@ var QS = (e, p) => (p || document).querySelector(e),
 		return xhttp;
 	},
 	post = (url, data, callback, r) => ajax({ url: url, data: data, done: callback, retry: r }),
-	beacon = (url, data, callback) => ajax({ url: url, data: data, beacon: true, done: callback });
+	beacon = (url, data, callback) => ajax({ url: url, data: data, beacon: true, done: callback }),
+	toDataURL = (src, callback, outputFormat) => {
+		let img = new Image();
+		img.crossOrigin = 'Anonymous';
+		img.onload = function() {
+			let canvas = document.createElement('CANVAS'),
+				ctx = canvas.getContext('2d'),
+				dataURL;
+			canvas.height = this.naturalHeight;
+			canvas.width = this.naturalWidth;
+			ctx.drawImage(this, 0, 0);
+			dataURL = canvas.toDataURL(outputFormat);
+			callback(dataURL);
+		};
+		img.src = src;
+		if (img.complete || img.complete === undefined) {
+			img.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+			img.src = src;
+		}
+	};
 
 /*Append or prepend data to elemet*/
 Node.prototype.paste = function(t, p) {
