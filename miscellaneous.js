@@ -11,6 +11,8 @@
 var QS = (e, p) => (p || document).querySelector(e),
 	QSA = (e, p) => (p || document).querySelectorAll(e),
 	QID = (e, p) => (p || document).getElementById(e),
+	QC = (e, p) => (p || document).getElementsByClassName(e),
+	QTAG = (e, p) => (p || document).getElementsByTagName(e),
 	today = () => new Date().toJSON().slice(0, 10),
 	oSumE = (o) => Object.values(o).reduce((a, b) => parseInt(a) + parseInt(b)),
 	cssVar = (v, e = QS(':root')) => getComputedStyle(e).getPropertyValue(`--${v}`),
@@ -36,7 +38,7 @@ var QS = (e, p) => (p || document).querySelector(e),
 		} catch (e) {
 			return false;
 		}
-		return true;
+		return JSON.parse(str);
 	},
 	sLineChart = (data, orientation, container, sum = 0, dd) => {
 		let lines = '',
@@ -204,6 +206,10 @@ Node.prototype.aClass = function(c) {
 Node.prototype.rClass = function(c) {
 	this.classList.remove(...c.split(' '));
 	return this;
+};
+/*Is visible*/
+Node.prototype.iVisible = function(c) {
+	return (this.offsetWidth || this.offsetHeight || this.getClientRects().length);
 };
 /*Switch class shortcut*/
 Node.prototype.sClass = function(r, a, s) {
