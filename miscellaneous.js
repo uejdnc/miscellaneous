@@ -28,18 +28,20 @@ var QS = (e, p) => (p || document).querySelector(e),
 	QID = (e, p) => (p || document).getElementById(e),
 	QC = (e, p) => (p || document).getElementsByClassName(e),
 	QTAG = (e, p) => (p || document).getElementsByTagName(e),
-	QIFR = (e, f) => QS(e).contentWindow[f] || (() => undefined),
+	QIFR = (e, f) => f ? (QS(e).contentWindow[f] || (() => undefined)) : QS(e).contentWindow,
 	today = () => new Date().toJSON().slice(0, 10),
 	oSumE = o => Object.values(o).reduce((a, b) => parseInt(a) + parseInt(b)),
-	cssVar = (v, e = QS(':root')) => getComputedStyle(e).getPropertyValue(`--${v}`),
+	cssVar = (v, e = QS(':root')) => e.css(`--${v}`),
 	maxV = (array, key) => {
 		let max = 0;
 		for (let i in array) max = (array[i][key] >= max) ? array[i][key] : max;
 		return max;
 	},
-	bTime = t => {
+	bTime = (t, f) => {
 		t = Math.round(parseInt(isNaN(t) ? 0 : t));
-		return (((t > 59) ? `${parseInt(t / 60)}h ` : '') + ((t % 60) ? `${(t % 60)}'` : '')).trim() || `${t}'`;
+		let hours = (t > 59) ? parseInt(t / 60) : 0,
+			minutes = (t % 60) ? (t % 60) : 0;
+		return f ? { hours: hours, minutes: minutes } : ((hours ? `${hours}h ` : '') + (minutes ? `${minutes}'` : '')).trim() || `${t}'`;
 	},
 	diffDate = (i, f, amount = (1000 * 3600 * 24)) => {
 		let date1 = new Date(i),
@@ -140,7 +142,7 @@ var QS = (e, p) => (p || document).querySelector(e),
 			contentType = d.contentType === undefined || d.contentType,
 			data = (contentType ? new URLSearchParams(new FormData(d.form)).toString() : d.form) || '';
 
-		if (d.data && !data) { for (key in d.data) data += encodeURIComponent(key) + "=" + encodeURIComponent(d.data[key]) + "&" }
+		if (d.data && !data) { for (let key in d.data) data += encodeURIComponent(key) + "=" + encodeURIComponent(d.data[key]) + "&" }
 
 		if (d.beacon == true) navigator.sendBeacon(d.url, data) && ((typeof d.callback == 'function') && d.callback());
 		else {
@@ -156,12 +158,28 @@ var QS = (e, p) => (p || document).querySelector(e),
 	},
 	post = (url, data, callback, r) => ajax({ url: url, data: data, done: callback, retry: r }),
 	beacon = (url, data, callback) => ajax({ url: url, data: data, beacon: true, done: callback }),
+	ajaxForm = (url, f, data, callback) => {
+		let form;
+		if (typeof data == 'function' || data == callback) {
+			form = f;
+			callback = data;
+		} else {
+			form = new FormData(f);
+			for (let i in data) form.append(i, data[i]);
+		}
+		return ajax({
+			url: url,
+			form: form,
+			contentType: (data == callback),
+			done: callback
+		});
+	},
 	arrayToNodeList = (a) => {
 		let rand = Math.floor(Math.random() * (1e4 - 1)) + 1;
 		for (let i of a) i.sAttr('nodelistinprocess', rand);
 		return QSA(`[nodelistinprocess="${rand}"]`).mrAttr('nodelistinprocess');
 	},
-	nodeListToArray = (n) => Array.from(n),
+	nodeListToArray = (n) => [...n],
 	range = (f, t) => {
 		let a = [],
 			ty = (isNaN(f)) ? 'l' : 'n';
@@ -171,10 +189,19 @@ var QS = (e, p) => (p || document).querySelector(e),
 		for (let i = f; i <= t; i++) a.push((ty == 'l') ? String.fromCharCode(i) : i);
 		return a;
 	},
-	overlap = (a, b) => {
+	overlap = (a, b, specific) => {
 		let ac = a.getBoundingClientRect(),
-			bc = b.getBoundingClientRect();
-		return !(ac.right < bc.left || ac.left > bc.right || ac.bottom < bc.top || ac.top > bc.bottom);
+			bc = b.getBoundingClientRect(),
+			Y = {},
+			X = {};
+
+		Y.top = (bc.bottom > ac.top);
+		Y.bottom = (ac.top > bc.bottom);
+
+		X.left = (bc.right > ac.left);
+		X.right = (ac.left > bc.right);
+
+		return specific ? { y: Y, x: X } : !((ac.right < bc.left || ac.left > bc.right || ac.bottom < bc.top || ac.top > bc.bottom));
 	},
 	_listeners = [];
 
@@ -274,7 +301,7 @@ NodeList.prototype.aClass = function(c) {
 	return this;
 };
 /*Remove class shortcut to NodeList*/
-NodeList.prototype.mrClass = function(c) { return rClass(c); };
+NodeList.prototype.mrClass = function(c) { return this.rClass(c); };
 NodeList.prototype.rClass = function(c) {
 	this.forEach((e) => e.rClass(c));
 	return this;
@@ -326,7 +353,7 @@ NodeList.prototype.remove = function(c) { for (let e of this) e.remove() };
 /*Add onclick to elements from Node*/
 Node.prototype.oClick = function(c, f) {
 	if (f === undefined) f = c, c = '';
-	this.onclick = c ? e => (e.target.closest(c) ? (() => f(e)) : (() => undefined))() : f
+	this.onclick = c ? e => (e.target.parent(c) ? (() => f(e)) : (() => undefined))() : f
 	return this;
 };
 /*Add onclick to elements from NodeList*/
@@ -447,11 +474,10 @@ NodeList.prototype.parent = function(e) {
 	return arrayToNodeList(arr);
 };
 /*Returns NodeList of elements touching Node*/
-Node.prototype.touching = function(x = 0, y = 0, c) {
+Node.prototype.touching = function(c) {
 	let that = this,
 		list = c || this.parentElement.children,
 		touching = [];
-
 	for (let i of list) {
 		if (overlap(that, i) && i != that) touching.push(i);
 	}
@@ -460,7 +486,7 @@ Node.prototype.touching = function(x = 0, y = 0, c) {
 };
 /*Makes an NodeList to an Array */
 NodeList.prototype.toArray = function(f, p) { return f ? nodeListToArray(this)[f](p) : nodeListToArray(this) };
-/*parentElemet n number of times on Node*/
+/*parentElemet n number of times on Node or .closest()*/
 Node.prototype.parent = function(n = 1) {
 	let e = this;
 	if (isNaN(n)) e = this.closest(n);
@@ -469,7 +495,7 @@ Node.prototype.parent = function(n = 1) {
 	}
 	return e;
 };
-/*parentElemet n number of times on Node*/
+/*Get and set styles to node or nodelist*/
 Node.prototype.css = function(s, v) {
 	let that = this;
 	if (v !== undefined) {
@@ -477,14 +503,58 @@ Node.prototype.css = function(s, v) {
 	} else if (typeof s == 'object') {
 		for (let i in s) that.style[i] = s[i];
 	}
-	return (v !== undefined || typeof s == 'object') ? that : that.style[s];
+	return (v !== undefined || typeof s == 'object') ? that : getComputedStyle(that).getPropertyValue(s);
 };
+NodeList.prototype.css = function(s, v) {
+	let cs = [];
+	for (let i of this) cs.push(i.css(s, v));
+
+	return (v !== undefined || typeof s == 'object') ? this : cs;
+};
+/*Set property to all elements in NodeList*/
+NodeList.prototype.sProperty = function(p, v) {
+	for (let i of this) i[p] = v;
+	return this;
+};
+/*Set/get property to all elements in NodeList*/
+NodeList.prototype.property = function(p, v) {
+	let vls = [];
+	if (v === undefined)
+		for (let i of this) vls.push(i[p]);
+	else
+		for (let i of this) i[p] = v;
+	return (v === undefined) ? vls : this;
+};
+/*Get and set attributes to node or nodelist*/
+Node.prototype.attr = function(s, v) {
+	let that = this;
+	if (v !== undefined) that.sAttr(s, v);
+	else if (typeof s == 'object') {
+		for (let i in s) that.sAttr(i, s[i]);
+	}
+	return (v !== undefined || typeof s == 'object') ? that : that.gAttr(s);
+};
+NodeList.prototype.attr = function(s, v) {
+	let cs = [];
+	for (let i of this) cs.push(i.attr(s, v));
+
+	return (v !== undefined || typeof s == 'object') ? this : cs;
+};
+/*Sort elements by value*/
+Node.prototype.sort = function(f, s, o) {
+	let itemsArr = nodeListToArray(this.children);
+	if (typeof s != 'function') o = s, s == undefined;
+	itemsArr.sort((a, b) => (f(a) == f(b)) ? ((!s || (s(a) == s(b))) ? 0 : ((s(a) > s(b)) ? 1 : -1)) : (((f(a) > f(b) && !o) || (f(a) < f(b) && o)) ? 1 : -1));
+	for (i = 0; i < itemsArr.length; ++i) this.appendChild(itemsArr[i]);
+	return this;
+};
+/*Know if element is inside a NodeList*/
+Node.prototype.in = function(nl) { return nodeListToArray((nl instanceof NodeList || nl instanceof HTMLCollection) ? nl : nl.children).includes(this) };
 /*
 Modify addEventListener function to store all events in an array
 for later use in the function removeEventsListeners
 wich removes all events from a specific type
 */
-EventTarget.prototype.addEventListenerBase = EventTarget.prototype.addEventListener;
 EventTarget.prototype.listener = function(type, listener, useCapture) {
 	_listeners.push({ target: this, type: type, listener: listener });
 	this.addEventListener(type, listener, useCapture);
