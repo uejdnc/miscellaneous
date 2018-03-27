@@ -8,6 +8,7 @@
 	today = Today's date on string
 	oSumE = Sum elements in object
 	cssVar = Gives you the value of a css variable
+	minute = convers minutes to milliseconds
 	maxV = Get max value of JSON
 	bTime = Format minutes to h ' (Hours and minutes)
 	diffDate = Difference in days from two strings
@@ -17,21 +18,24 @@
 	ajax = Makes xmlhttp request via post or get, it could also sen beacons
 	post = Send data through post (ajax shortcut)
 	beacon = Send a beacon (ajax shortcut)
+	ajaxForm = Sends a form,  and appends data to it, through ajax (ajax shortcut)
 	arrayToNodeList = Converts an array to a NodeList
+	isNode = Checks whether parameter passed is a Node
 	nodeListToArray = Converts a NodeList to an array
 	range = Returns a given range, it could be numbers or letters
 	overlap = Returns boolean on whether two elements overlap
 	_listeners = Variable to store the listeners set with the .listen() function
 */
-var QS = (e, p) => (p || document).querySelector(e),
+var QS = (e, p) => ((e && (p || document).querySelector(e)) || emptyNode()),
 	QSA = (e, p) => (p || document).querySelectorAll(e),
-	QID = (e, p) => (p || document).getElementById(e),
+	QID = (e, p) => ((e && (p || document).getElementById(e)) || emptyNode()),
 	QC = (e, p) => (p || document).getElementsByClassName(e),
 	QTAG = (e, p) => (p || document).getElementsByTagName(e),
 	QIFR = (e, f) => f ? (QS(e).contentWindow[f] || (() => undefined)) : QS(e).contentWindow,
 	today = () => new Date().toJSON().slice(0, 10),
 	oSumE = o => Object.values(o).reduce((a, b) => parseInt(a) + parseInt(b)),
 	cssVar = (v, e = QS(':root')) => e.css(`--${v}`),
+	minute = n => n * 6e4,
 	maxV = (array, key) => {
 		let max = 0;
 		for (let i in array) max = (array[i][key] >= max) ? array[i][key] : max;
@@ -136,27 +140,26 @@ var QS = (e, p) => (p || document).querySelector(e),
 
 		return chartelem;
 	},
-	ajax = d => {
-		if (!d) d = {};
+	ajax = (d = {}) => {
 		let xhttp = d.beacon || new XMLHttpRequest(),
 			contentType = d.contentType === undefined || d.contentType,
 			data = (contentType ? new URLSearchParams(new FormData(d.form)).toString() : d.form) || '';
 
-		if (d.data && !data) { for (let key in d.data) data += encodeURIComponent(key) + "=" + encodeURIComponent(d.data[key]) + "&" }
+		if (d.data && !data) { for (let i in d.data) data += encodeURIComponent(i) + "=" + encodeURIComponent(d.data[i]) + "&" }
 
-		if (d.beacon == true) navigator.sendBeacon(d.url, data) && ((typeof d.callback == 'function') && d.callback());
+		if (d.beacon) navigator.sendBeacon(d.url, data) && ((typeof d.callback == 'function') && d.callback());
 		else {
 			xhttp.onreadystatechange = function() { if (this.readyState == 4 && this.status == 200)(d.done || (() => ''))(this.responseText) };
 			xhttp.onerror = () => d.retry && ((typeof d.retry == 'function') ? d.retry : ajax)(d);
 
 			xhttp.open(d.method || 'POST', d.url, d.async === undefined || d.async);
-			if (contentType) xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+			contentType && xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 
 			xhttp.send(data);
 		}
 		return xhttp;
 	},
-	post = (url, data, callback, r) => ajax({ url: url, data: data, done: callback, retry: r }),
+	post = (url, data, callback, r) => ajax({ url: url, data: data, done: callback || data, retry: r }),
 	beacon = (url, data, callback) => ajax({ url: url, data: data, beacon: true, done: callback }),
 	ajaxForm = (url, f, data, callback) => {
 		let form;
@@ -174,15 +177,18 @@ var QS = (e, p) => (p || document).querySelector(e),
 			done: callback
 		});
 	},
-	arrayToNodeList = (a) => {
-		let rand = Math.floor(Math.random() * (1e4 - 1)) + 1;
-		for (let i of a) i.sAttr('nodelistinprocess', rand);
-		return QSA(`[nodelistinprocess="${rand}"]`).mrAttr('nodelistinprocess');
+	arrayToNodeList = a => {
+		for (var i = -1, l = a.length, p = ''; ++i !== l; p += isNode(a[i]) ? `${a[i].path()},` : '');
+		return p ? QSA(p.slice(0, -1)) : document.createDocumentFragment().childNodes;
 	},
-	nodeListToArray = (n) => [...n],
+	isNode = o => o && typeof o == 'object' && 'nodeType' in o,
+	nodeListToArray = n => {
+		for (var i = -1, l = n.length, a = new Array(l); ++i !== l; a[i] = n[i]);
+		return a;
+	},
 	range = (f, t) => {
 		let a = [],
-			ty = (isNaN(f)) ? 'l' : 'n';
+			ty = isNaN(f) ? 'l' : 'n';
 
 		if (t == undefined) t = f, f = (ty == 'n') ? 0 : 'a';
 		if (ty == 'l') t = t.toLowerCase().charCodeAt(0), f = f.toLowerCase().charCodeAt(0);
@@ -203,6 +209,7 @@ var QS = (e, p) => (p || document).querySelector(e),
 
 		return specific ? { y: Y, x: X } : !((ac.right < bc.left || ac.left > bc.right || ac.bottom < bc.top || ac.top > bc.bottom));
 	},
+	emptyNode = () => '<div></div>'.createHTML().children[0],
 	_listeners = [];
 
 /*Append or prepend data to elemet*/
@@ -216,7 +223,6 @@ Node.prototype.paste = function(t, p) {
 NodeList.prototype.mPaste = function(t, p) { return this.paste(t, p) };
 NodeList.prototype.paste = function(t, p) {
 	for (let i of this) i.paste(t, p);
-
 	return this;
 };
 /*innerHTML data to elemet*/
@@ -239,15 +245,12 @@ NodeList.prototype.iHTML = function(e) {
 	if (e != undefined) {
 		for (let i of this) i.iHTML((typeof e == 'function') ? e(i.iHTML()) : e);
 	}
-	// return (e != undefined) ? this : this.innerHTML;
 	return (e != undefined) ? this : this.toArray('map', e => e.iHTML());
 };
 /*NodeList innerText data to elemet*/
 NodeList.prototype.miText = function(e) { return this.iText() };
 NodeList.prototype.iText = function(e) {
-	if (e != undefined) {
-		for (let i of this) i.iText((typeof e == 'function') ? e(i.iText()) : e);
-	}
+	if (e != undefined) { for (let i of this) i.iText((typeof e == 'function') ? e(i.iText()) : e) }
 	return (e != undefined) ? this : this.toArray('map', e => e.iText());
 };
 /*Get attribute of element with fallback*/
@@ -286,7 +289,7 @@ Node.prototype.rClass = function(c) {
 Node.prototype.iVisible = function(c) { return (this.offsetWidth || this.offsetHeight || this.getClientRects().length) };
 /*Switch class shortcut*/
 Node.prototype.sClass = function(r, a, s) {
-	this.rClass(s ? a : r), this.aClass(s ? r : a);
+	this.rClass(s ? a : r).aClass(s ? r : a);
 	return this;
 };
 /*Toggle class shortcut*/
@@ -323,7 +326,7 @@ NodeList.prototype.mhClass = function(c, t) { return this.hClass(c, t) };
 NodeList.prototype.hClass = function(c, t) {
 	let that = this,
 		cond = { 't': false, 'f': false };
-	that.forEach(i => cond[(i.hClass(c, t) ? 't' : 'f')] = true);
+	for (let i of this) cond[(i.hClass(c, t) ? 't' : 'f')] = true;
 	return t ? cond.t : !cond.f;
 };
 /*Get attribute of nodeList with fallback*/
@@ -382,6 +385,15 @@ NodeList.prototype.oEvent = function(e, s, f) {
 	return this;
 }
 /*Set time out alternative*/
+/*Node.prototype.wait = async function(t) {
+	let that = this,
+		wait = () => new Promise(() =>setTimeout(() => console.log(that), t)),
+		done = await wait();
+	return done.then(function(done) {
+	console.log(done); // --> 'done!'
+	});;
+	// return this;
+};*/
 Node.prototype.wait = function(t) {
 	let before = Date.now();
 	while (Date.now() < before + t) {};
@@ -400,6 +412,28 @@ String.prototype.tDate = function(i, o) {
 };
 /*Date to string*/
 Date.prototype.DtoS = function() { return this.getFullYear() + '-' + String(this.getMonth() + 1).padStart(2, 0) + '-' + String(this.getDate()).padStart(2, 0) }
+/*String to date*/
+/*String.prototype.toDate = function(f='dd/mm/ hh:ii:ss') {
+	let normalized = this.replace(/[^a-zA-Z0-9]/g, '-'),
+		normalizedFormat = f.toLowerCase().replace(/[^a-zA-Z0-9]/g, '-'),
+		formatItems = normalizedFormat.split('-'),
+		dateItems = normalized.split('-'),
+		monthIndex = formatItems.indexOf("mm"),
+		dayIndex = formatItems.indexOf("dd"),
+		yearIndex = formatItems.indexOf("yyyy"),
+		hourIndex = formatItems.indexOf("hh"),
+		minutesIndex = formatItems.indexOf("ii"),
+		secondsIndex = formatItems.indexOf("ss"),
+		t = new Date(),
+		year = yearIndex > -1 ? dateItems[yearIndex] : t.getFullYear(),
+		month = monthIndex > -1 ? dateItems[monthIndex] - 1 : t.getMonth() - 1,
+		day = dayIndex > -1 ? dateItems[dayIndex] : t.getDate(),
+		hour = hourIndex > -1 ? dateItems[hourIndex] : t.getHours(),
+		minute = minutesIndex > -1 ? dateItems[minutesIndex] : t.getMinutes(),
+		second = secondsIndex > -1 ? dateItems[secondsIndex] : t.getSeconds();
+
+	return new Date(year, month, day, hour || t.getHours(), minute || t.getMinutes(), second || t.getSeconds());
+};*/
 /*If is a valid date*/
 String.prototype.iDate = function(i, o) { return new Date(this) != 'Invalid Date' };
 /*Get element index*/
@@ -451,6 +485,11 @@ Node.prototype.nextE = function(p = 1) {
 	}
 	return e;
 };
+NodeList.prototype.nextE = function(p = 1) {
+	let e = [];
+	for (let i of this) e.push(i.nextE(p));
+	return arrayToNodeList(e);
+};
 /*Prev element*/
 Node.prototype.prevE = function(p = 1) {
 	let e = this;
@@ -460,6 +499,11 @@ Node.prototype.prevE = function(p = 1) {
 		return undefined;
 	}
 	return e;
+};
+NodeList.prototype.prevE = function(p = 1) {
+	let e = [];
+	for (let i of this) e.push(i.prevE(p));
+	return arrayToNodeList(e);
 };
 /*Get last character of string*/
 String.prototype.lastC = function() { return this[this.length - 1]; };
@@ -540,16 +584,36 @@ NodeList.prototype.attr = function(s, v) {
 
 	return (v !== undefined || typeof s == 'object') ? this : cs;
 };
+/*Get elements unique path*/
+Node.prototype.path = function() {
+	let that = this,
+		path = [];
+	while (that.parent()) {
+		if (that == that.ownerDocument.documentElement) path.unshift(that.tagName);
+		else {
+			for (var c = 1, e = that; e.previousElementSibling; e = e.previousElementSibling, c++);
+			path.unshift(`${that.tagName}:nth-child(${c})`);
+		}
+		that = that.parent();
+	}
+	return path.join('>');
+};
 /*Sort elements by value*/
 Node.prototype.sort = function(f, s, o) {
-	let itemsArr = nodeListToArray(this.children);
+	let itms = nodeListToArray(this.children);
 	if (typeof s != 'function') o = s, s == undefined;
-	itemsArr.sort((a, b) => (f(a) == f(b)) ? ((!s || (s(a) == s(b))) ? 0 : ((s(a) > s(b)) ? 1 : -1)) : (((f(a) > f(b) && !o) || (f(a) < f(b) && o)) ? 1 : -1));
-	for (i = 0; i < itemsArr.length; ++i) this.appendChild(itemsArr[i]);
+	itms.sort((a, b) => (f(a) == f(b)) ? ((!s || (s(a) == s(b))) ? 0 : ((s(a) > s(b)) ? 1 : -1)) : (((f(a) > f(b) && !o) || (f(a) < f(b) && o)) ? 1 : -1));
+	for (i = 0; i < itms.length; ++i) this.appendChild(itms[i]);
 	return this;
 };
 /*Know if element is inside a NodeList*/
 Node.prototype.in = function(nl) { return nodeListToArray((nl instanceof NodeList || nl instanceof HTMLCollection) ? nl : nl.children).includes(this) };
+/*Exclude element from NodeList*/
+NodeList.prototype.not = function() {
+	let a = this.toArray();
+	for (let i of arguments) delete a[a.indexOf(i)];
+	return arrayToNodeList(a)
+};
 /*
 Modify addEventListener function to store all events in an array
 for later use in the function removeEventsListeners
