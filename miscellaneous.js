@@ -26,34 +26,31 @@
 	overlap = Returns boolean on whether two elements overlap
 	_listeners = Variable to store the listeners set with the .listen() function
 */
-var QS = (e, p) => ((e && (p || document).querySelector(e)) || emptyNode()),
+const QS = (e, p) => ((e && (p || document).querySelector(e)) || emptyNode()),
 	QSA = (e, p) => (p || document).querySelectorAll(e),
 	QID = (e, p) => ((e && (p || document).getElementById(e)) || emptyNode()),
 	QC = (e, p) => (p || document).getElementsByClassName(e),
 	QTAG = (e, p) => (p || document).getElementsByTagName(e),
-	QIFR = (e, f) => f ? (QS(e).contentWindow[f] || (() => undefined)) : QS(e).contentWindow,
+	QIFR = (e, f) => f ? (QS(e).contentWindow[f] || (() => void 0)) : QS(e).contentWindow,
 	today = () => new Date().toJSON().slice(0, 10),
 	oSumE = o => Object.values(o).reduce((a, b) => parseInt(a) + parseInt(b)),
 	cssVar = (v, e = QS(':root')) => e.css(`--${v}`),
 	minute = n => n * 6e4,
+	rand = () => Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2),
 	maxV = (array, key) => {
 		let max = 0;
 		for (let i in array) max = (array[i][key] >= max) ? array[i][key] : max;
 		return max;
 	},
+	uniArray = (array, key) => { for (var i = -1, a = [], l = array.length; ++i != l; a[i] = array[i][key]); return a; },
+	joinMultiObj = (array, j1 = ',', j2 = '-') => { for (var i = -1, a = [], l = array.length; ++i != l; a[i] = Object.values(array[i]).join(j2)); return a.join(j1); },
+	hTime = t => 'object' === typeof t ? ((t = Object.values(t)).length != 2 ? parseInt(t[0]) : ((parseInt((t = Object.values(t))[0]) * 60) + parseInt(t[1]))) : ((t = t.split('h')).length != 2 ? parseInt(t[0]) : ((parseInt(t[0]) * 60) + parseInt(t[1]))),
 	bTime = (t, f) => {
-		t = Math.round(parseInt(isNaN(t) ? 0 : t));
-		let hours = (t > 59) ? parseInt(t / 60) : 0,
-			minutes = (t % 60) ? (t % 60) : 0;
-		return f ? { hours: hours, minutes: minutes } : ((hours ? `${hours}h ` : '') + (minutes ? `${minutes}'` : '')).trim() || `${t}'`;
+		const h = ((t = Math.round(parseInt(isNaN(t) ? 0 : t))) > 59) ? parseInt(t / 60) : 0,
+			m = t % 60 || 0;
+		return f ? { hours: h, minutes: m } : ((h ? `${h}h ` : '') + (m ? `${m}'` : '')).trim() || `${t}'`;
 	},
-	diffDate = (i, f, amount = (1000 * 3600 * 24)) => {
-		let date1 = new Date(i),
-			date2 = new Date(f),
-			timeDiff = Math.abs(date2.getTime() - date1.getTime());
-
-		return Math.ceil(timeDiff / amount);
-	},
+	diffDate = (i, f, amount = (1000 * 3600 * 24)) => ~~((Math.abs((new Date(f)).getTime() - (new Date(i)).getTime())) / amount),
 	isJSON = str => {
 		try {
 			JSON.parse(str);
@@ -63,8 +60,8 @@ var QS = (e, p) => ((e && (p || document).querySelector(e)) || emptyNode()),
 		return JSON.parse(str);
 	},
 	sLineChart = (data, orientation, container, sum = 0, dd) => {
-		let lines = '',
-			max = data.length;
+		let lines = '';
+		const max = data.length;
 
 		if (!orientation) orientation = 'v';
 		if (!container) container = 'body';
@@ -141,9 +138,34 @@ var QS = (e, p) => ((e && (p || document).querySelector(e)) || emptyNode()),
 		return chartelem;
 	},
 	ajax = (d = {}) => {
-		let xhttp = d.beacon || new XMLHttpRequest(),
-			contentType = d.contentType === undefined || d.contentType,
-			data = (contentType ? new URLSearchParams(new FormData(d.form)).toString() : d.form) || '';
+		/*if (self.fetch) {
+			if (!(d.data instanceof FormData)) {
+				let c = d.data instanceof Node,
+					a = new FormData(c ? d.data : undefined);
+				if (!c)
+					for (let i in d.data) a.append(i, d.data[i]);
+				d.data = a;
+			}
+			return fetch(d.url, {
+				method: d.method || 'post',
+				headers: d.headers,
+				body: d.data
+			}).then(response => {
+				if (response.ok) {
+					return response[d.response || 'text']();
+				} else {
+					if (d.retry) ajax(d);
+					return Promise.reject({
+						status: response.status,
+						statusText: response.statusText,
+						err: text
+					});
+				}
+			}).then(d.done);
+		} else {*/
+		const xhttp = d.beacon || new XMLHttpRequest(),
+			contentType = d.contentType === void 0 || d.contentType;
+		let data = (contentType ? new URLSearchParams(new FormData(d.form)).toString() : d.form) || '';
 
 		if (d.data && !data) { for (let i in d.data) data += encodeURIComponent(i) + "=" + encodeURIComponent(d.data[i]) + "&" }
 
@@ -152,12 +174,13 @@ var QS = (e, p) => ((e && (p || document).querySelector(e)) || emptyNode()),
 			xhttp.onreadystatechange = function() { if (this.readyState == 4 && this.status == 200)(d.done || (() => ''))(this.responseText) };
 			xhttp.onerror = () => d.retry && ((typeof d.retry == 'function') ? d.retry : ajax)(d);
 
-			xhttp.open(d.method || 'POST', d.url, d.async === undefined || d.async);
+			xhttp.open(d.method || 'POST', d.url, d.async === void 0 || d.async);
 			contentType && xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 
 			xhttp.send(data);
 		}
 		return xhttp;
+		// }
 	},
 	post = (url, data, callback, r) => ajax({ url: url, data: data, done: callback || data, retry: r }),
 	beacon = (url, data, callback) => ajax({ url: url, data: data, beacon: true, done: callback }),
@@ -177,26 +200,18 @@ var QS = (e, p) => ((e && (p || document).querySelector(e)) || emptyNode()),
 			done: callback
 		});
 	},
-	arrayToNodeList = a => {
-		for (var i = -1, l = a.length, p = ''; ++i !== l; p += isNode(a[i]) ? `${a[i].path()},` : '');
-		return p ? QSA(p.slice(0, -1)) : document.createDocumentFragment().childNodes;
-	},
+	arrayToNodeList = a => { for (var i = -1, l = a.length, p = ''; ++i !== l; p += isNode(a[i]) ? `${a[i].path()},` : '', console.log(p)); return p ? QSA(p.slice(0, -1)) : document.createDocumentFragment().childNodes; },
 	isNode = o => o && typeof o == 'object' && 'nodeType' in o,
-	nodeListToArray = n => {
-		for (var i = -1, l = n.length, a = new Array(l); ++i !== l; a[i] = n[i]);
-		return a;
-	},
+	nodeListToArray = n => { for (var i = -1, l = n.length, a = new Array(l); ++i !== l; a[i] = n[i]); return a; },
 	range = (f, t) => {
-		let a = [],
+		const a = [],
 			ty = isNaN(f) ? 'l' : 'n';
-
-		if (t == undefined) t = f, f = (ty == 'n') ? 0 : 'a';
-		if (ty == 'l') t = t.toLowerCase().charCodeAt(0), f = f.toLowerCase().charCodeAt(0);
-		for (let i = f; i <= t; i++) a.push((ty == 'l') ? String.fromCharCode(i) : i);
+		void 0 == t && (t = f, f = (ty == 'n') ? 0 : 'a'), 'l' == ty && (t = t.toLowerCase().charCodeAt(0), f = f.toLowerCase().charCodeAt(0));
+		for (let i = f - 1, ii = -1; ++i <= t; a[++ii] = ty == 'l' ? String.fromCharCode(i) : i);
 		return a;
 	},
 	overlap = (a, b, specific) => {
-		let ac = a.getBoundingClientRect(),
+		const ac = a.getBoundingClientRect(),
 			bc = b.getBoundingClientRect(),
 			Y = {},
 			X = {};
@@ -209,64 +224,69 @@ var QS = (e, p) => ((e && (p || document).querySelector(e)) || emptyNode()),
 
 		return specific ? { y: Y, x: X } : !((ac.right < bc.left || ac.left > bc.right || ac.bottom < bc.top || ac.top > bc.bottom));
 	},
+	/*wait = async function(a, b) {
+		new Promise((resolve, reject) => {
+			await (async function(){a()})();
+			resolve(b)
+		})
+	}*/
 	emptyNode = () => '<div></div>'.createHTML().children[0],
+	/*fastSort = (arr, a=0) => {
+		var len = arr.length;
+		if (len < 2)
+			return arr;
+		var mid = Math.floor(len / 2),
+			left = arr.slice(0, mid),
+			right = arr.slice(mid),
+			ar = ((left, right) => {
+			var result = [],
+				lLen = left.length,
+				rLen = right.length,
+				l = 0,
+				r = 0;
+			while (l < lLen && r < rLen)(left[l] < right[r]) ? result.push(left[l++]) : result.push(right[r++]);
+			//remaining part needs to be addred to the result
+			return result.concat(left.slice(l)).concat(right.slice(r));
+		})(mergeSort(left), mergeSort(right));
+		if a &&
+		return
+	},*/
 	_listeners = [];
 
 /*Append or prepend data to elemet*/
-Node.prototype.paste = function(t, p) {
-	let pos = ['beforeEnd', 'afterBegin', 'beforeBegin', 'afterEnd'];
-
-	this.insertAdjacentHTML(pos[p || 0], t);
-	return this;
-};
+Node.prototype.paste = function(t, p) { return this.insertAdjacentHTML((['beforeEnd', 'afterBegin', 'beforeBegin', 'afterEnd'])[p || 0], t) || this };
 /*Append or prepend data to NodeList*/
 NodeList.prototype.mPaste = function(t, p) { return this.paste(t, p) };
 NodeList.prototype.paste = function(t, p) {
-	for (let i of this) i.paste(t, p);
+	for (const i of this) i.paste(t, p);
 	return this;
 };
 /*innerHTML data to elemet*/
-Node.prototype.iHTML = function(e) {
-	if (e != undefined) {
-		this.innerHTML = '';
-		if (typeof e == 'string') this.innerHTML = e;
-		else this.appendChild(e);
-	}
-	return (e != undefined) ? this : this.innerHTML;
-};
+Node.prototype.iHTML = function(e) { return void 0 != e && (this.innerHTML = '', ('string' == typeof e || 'number' == typeof e) ? this.innerHTML = e : this.appendChild(e)), void 0 != e ? this : this.innerHTML };
 /*innerText data to elemet*/
-Node.prototype.iText = function(e) {
-	if (e != undefined) this.innerText = e;
-	return (e != undefined) ? this : this.innerText;
-};
+Node.prototype.iText = function(e) { return void 0 != e && (this.innerText = e), void 0 != e ? this : this.innerText };
 /*NodeList innerHTML data to elemet*/
 NodeList.prototype.miHTML = function(e) { return this.iHTML(e) };
 NodeList.prototype.iHTML = function(e) {
-	if (e != undefined) {
-		for (let i of this) i.iHTML((typeof e == 'function') ? e(i.iHTML()) : e);
-	}
-	return (e != undefined) ? this : this.toArray('map', e => e.iHTML());
+	if (e != void 0) { for (let i = -1, l = this.length; ++i != l; this.item(i).iHTML((typeof e == 'function') ? e(i.iHTML()) : e)); }
+	return (e != void 0) ? this : this.toArray('map', e => e.iHTML());
 };
 /*NodeList innerText data to elemet*/
 NodeList.prototype.miText = function(e) { return this.iText() };
 NodeList.prototype.iText = function(e) {
-	if (e != undefined) { for (let i of this) i.iText((typeof e == 'function') ? e(i.iText()) : e) }
-	return (e != undefined) ? this : this.toArray('map', e => e.iText());
+	if (e != void 0) { for (let i = -1, l = this.length; ++i != l; this.item(i).iText((typeof e == 'function') ? e(i.iText()) : e)); }
+	return (e != void 0) ? this : this.toArray('map', e => e.iText());
 };
 /*Get attribute of element with fallback*/
-Node.prototype.gAttr = function(a, f) { return (this.attributes[a]) ? this.attributes[a].nodeValue : (f ? ((this.attributes[f]) ? this.attributes[f].nodeValue : undefined) : undefined); };
+Node.prototype.gAttr = function(a, f) { return (this.attributes[a]) ? this.attributes[a].nodeValue : (f ? ((this.attributes[f]) ? this.attributes[f].nodeValue : void 0) : void 0); };
 /*Set attribute of element*/
-Node.prototype.sAttr = function(a, v) {
+Node.prototype.sAttr = function(a, v = '') {
 	if (this.attributes[a]) this.attributes[a].nodeValue = v;
 	else this.setAttribute(a, v);
 	return this;
 };
 /*Remove attribute of element*/
-Node.prototype.rAttr = function(a) {
-	let that = this;
-	a.split(' ').forEach(e => that.removeAttribute(e));
-	return this;
-};
+Node.prototype.rAttr = function(a) { for (let i = -1, at = a.split(' '), l = at.length; ++i != l; this.removeAttribute(at[i])); return this };
 /*Has class shortcut*/
 Node.prototype.hClass = function(c, t) {
 	let that = this,
@@ -275,10 +295,7 @@ Node.prototype.hClass = function(c, t) {
 	return t ? cond.t : !cond.f;
 };
 /*Add class shortcut*/
-Node.prototype.aClass = function(c) {
-	if (c) this.classList.add(...c.split(' '));
-	return this;
-};
+Node.prototype.aClass = function(c) { return (c && this.classList.add(...c.split(' '))) || this };
 /*Remove class shortcut*/
 Node.prototype.rClass = function(c) {
 	if (c) this.classList.remove(...c.split(' '));
@@ -288,45 +305,26 @@ Node.prototype.rClass = function(c) {
 /*Is visible*/
 Node.prototype.iVisible = function(c) { return (this.offsetWidth || this.offsetHeight || this.getClientRects().length) };
 /*Switch class shortcut*/
-Node.prototype.sClass = function(r, a, s) {
-	this.rClass(s ? a : r).aClass(s ? r : a);
-	return this;
-};
+Node.prototype.sClass = function(r, a, s) { return this.rClass(s ? a : r).aClass(s ? r : a) };
 /*Toggle class shortcut*/
-Node.prototype.tClass = function(c, t) {
-	(((t === undefined) ? this.hClass(c) : !t) ? c => this.rClass(c) : c => this.aClass(c))(c);
-	return this;
-};
+Node.prototype.tClass = function(c, t) { return (((t === void 0) ? this.hClass(c) : !t) ? c => this.rClass(c) : c => this.aClass(c))(c) };
 /*Add class shortcut to NodeList*/
 NodeList.prototype.maClass = function(c) { return this.aClass(c) };
-NodeList.prototype.aClass = function(c) {
-	this.forEach((e) => e.aClass(c));
-	return this;
-};
+NodeList.prototype.aClass = function(c) { for (let i = -1, l = this.length; ++i != l; this.item(i).aClass(c)); return this };
 /*Remove class shortcut to NodeList*/
 NodeList.prototype.mrClass = function(c) { return this.rClass(c); };
-NodeList.prototype.rClass = function(c) {
-	this.forEach((e) => e.rClass(c));
-	return this;
-};
+NodeList.prototype.rClass = function(c) { for (let i = -1, l = this.length; ++i != l; this.item(i).rClass(c)); return this };
 /*Switch class shortcut to NodeList*/
 NodeList.prototype.msClass = function(r, a, s) { return this.sClass(r, a, s); };
-NodeList.prototype.sClass = function(r, a, s) {
-	this.forEach((e) => e.sClass(r, a, s));
-	return this;
-};
+NodeList.prototype.sClass = function(c) { for (let i = -1, l = this.length; ++i != l; this.item(i).sClass(c)); return this };
 /*Toggle class shortcut to NodeList*/
 NodeList.prototype.mtClass = function(c, t) { return this.tClass(c, t) };
-NodeList.prototype.tClass = function(c, t) {
-	this.forEach((e) => e.tClass(c, t));
-	return this;
-};
+NodeList.prototype.tClass = function(c) { for (let i = -1, l = this.length; ++i != l; this.item(i).tClass(c)); return this };
 /*NodeList Has class shortcut*/
 NodeList.prototype.mhClass = function(c, t) { return this.hClass(c, t) };
 NodeList.prototype.hClass = function(c, t) {
-	let that = this,
-		cond = { 't': false, 'f': false };
-	for (let i of this) cond[(i.hClass(c, t) ? 't' : 'f')] = true;
+	const cond = { 't': false, 'f': false };
+	for (let i = -1, l = this.length; ++i != l; cond[this.item(i).hClass(c) ? 't' : 'f'] = true);
 	return t ? cond.t : !cond.f;
 };
 /*Get attribute of nodeList with fallback*/
@@ -340,23 +338,17 @@ NodeList.prototype.values = function(a) { return this.toArray('map', e => e.id) 
 NodeList.prototype.multiArray = function(f, p) { return this.toArray('map', e => p ? e[f](...p) : e[f]) };
 /*Set attribute to NodeList*/
 NodeList.prototype.msAttr = function(a, v) { return this.sAttr(a, v) };
-NodeList.prototype.sAttr = function(a, v) {
-	this.forEach(e => e.sAttr(a, v));
-	return this;
-};
+NodeList.prototype.sAttr = function(c) { for (let i = -1, l = this.length; ++i != l; this.item(i).sAttr(a, v)); return this };
 /*Remove attribute to NodeList*/
 NodeList.prototype.mrAttr = function(a, v) { return this.rAttr(a, v) };
-NodeList.prototype.rAttr = function(a, v) {
-	this.forEach(e => e.rAttr(a, v));
-	return this;
-};
+NodeList.prototype.rAttr = function(c) { for (let i = -1, l = this.length; ++i != l; this.item(i).rAttr(a, v)); return this };
 /*Remove elements from NodeList*/
-NodeList.prototype.removes = function(c) { return this.remove() };
-NodeList.prototype.remove = function(c) { for (let e of this) e.remove() };
+NodeList.prototype.removes = function() { return this.remove() };
+NodeList.prototype.remove = function() { for (let i = -1, l = this.length; ++i != l; this.item(i).remove()); };
 /*Add onclick to elements from Node*/
 Node.prototype.oClick = function(c, f) {
-	if (f === undefined) f = c, c = '';
-	this.onclick = c ? e => (e.target.parent(c) ? (() => f(e)) : (() => undefined))() : f
+	if (f === void 0) f = c, c = '';
+	this.onclick = c ? e => (e.target.parent(c) ? (() => f(e)) : (() => void 0))() : f
 	return this;
 };
 /*Add onclick to elements from NodeList*/
@@ -394,16 +386,7 @@ NodeList.prototype.oEvent = function(e, s, f) {
 	});;
 	// return this;
 };*/
-Node.prototype.wait = function(t) {
-	let before = Date.now();
-	while (Date.now() < before + t) {};
-	return this;
-};
-NodeList.prototype.wait = function(t) {
-	let before = Date.now();
-	while (Date.now() < before + t) {};
-	return this;
-};
+Node.prototype.wait = NodeList.prototype.wait = function(t = 200) { return new Promise((resolve, reject) => setTimeout(() => resolve(this), t)) };
 /*Add/Subtract days from string or object*/
 String.prototype.tDate = function(i, o) {
 	let date = new Date(this.split('-'));
@@ -461,7 +444,7 @@ Node.prototype.loadP = function(url, d) {
 	ajax({
 		url: url,
 		async: false,
-		data: d || undefined,
+		data: d || void 0,
 		method: d ? 'POST' : 'GET',
 		done: data => that.innerHTML = data
 	});
@@ -476,58 +459,19 @@ Node.prototype.replaceElement = function(s) {
 	return e;
 };
 /*Next element*/
-Node.prototype.nextE = function(p = 1) {
-	let e = this;
-	try {
-		for (let i = 0; i < p; i++) e = e.nextElementSibling;
-	} catch (e) {
-		return undefined;
-	}
-	return e;
-};
-NodeList.prototype.nextE = function(p = 1) {
-	let e = [];
-	for (let i of this) e.push(i.nextE(p));
-	return arrayToNodeList(e);
-};
+Node.prototype.nextE = function(p = 1) { for (var i = -1, e = this; ++i != p && e.nextElementSibling; e = e.nextElementSibling); return e };
+NodeList.prototype.nextE = function(p = 1) { for (var i = -1, e = [], a = this.toArray(), l = a.length, c; ++i != l; c = a[i].nextE(p), e[i] = e.includes(c) ? null : c); return arrayToNodeList(e) };
 /*Prev element*/
-Node.prototype.prevE = function(p = 1) {
-	let e = this;
-	try {
-		for (let i = 0; i < p; i++) e = e.previousElementSibling;
-	} catch (e) {
-		return undefined;
-	}
-	return e;
-};
-NodeList.prototype.prevE = function(p = 1) {
-	let e = [];
-	for (let i of this) e.push(i.prevE(p));
-	return arrayToNodeList(e);
-};
+Node.prototype.prevE = function(p = 1) { for (var i = -1, e = this; ++i != p && e.previousElementSibling; e = e.previousElementSibling); return e };
+NodeList.prototype.prevE = function(p = 1) { for (var i = -1, e = [], a = this.toArray(), l = a.length, c; ++i != l; c = a[i].prevE(p), e[i] = e.includes(c) ? null : c); return arrayToNodeList(e) };
 /*Get last character of string*/
 String.prototype.lastC = function() { return this[this.length - 1]; };
 /*Get first character of string*/
 String.prototype.firstC = function() { return this[0]; };
 /*Return NodeList of closest*/
-NodeList.prototype.parent = function(e) {
-	let arr = [];
-	for (let i of this) {
-		if (i.parent(e) && !arr.includes(i)) arr.push(i.parent(e));
-	}
-	return arrayToNodeList(arr);
-};
+NodeList.prototype.parent = function(e) { for (var i = -1, e = [], a = this.toArray(), l = a.length, c; ++i != l; c = a[i].parent(p), e[i] = e.includes(c) ? null : c); return arrayToNodeList(e) };
 /*Returns NodeList of elements touching Node*/
-Node.prototype.touching = function(c) {
-	let that = this,
-		list = c || this.parentElement.children,
-		touching = [];
-	for (let i of list) {
-		if (overlap(that, i) && i != that) touching.push(i);
-	}
-
-	return arrayToNodeList(touching);
-};
+Node.prototype.touching = function(b) { for (var i = -1, e = [], a = nodeListToArray(b || this.parentElement.children), l = a.length, c; ++i != l; c = a[i], e[i] = !(e.includes(c)) && overlap(this, c) && c != this ? c : null); return arrayToNodeList(e) };
 /*Makes an NodeList to an Array */
 NodeList.prototype.toArray = function(f, p) { return f ? nodeListToArray(this)[f](p) : nodeListToArray(this) };
 /*parentElemet n number of times on Node or .closest()*/
@@ -535,85 +479,103 @@ Node.prototype.parent = function(n = 1) {
 	let e = this;
 	if (isNaN(n)) e = this.closest(n);
 	else {
-		for (let i of range(n - 1)) e = e.parentElement;
+		for (let i = -2; ++i != n; e = e.parentElement);
 	}
 	return e;
 };
 /*Get and set styles to node or nodelist*/
 Node.prototype.css = function(s, v) {
 	let that = this;
-	if (v !== undefined) {
-		that.style[s] = v;
-	} else if (typeof s == 'object') {
-		for (let i in s) that.style[i] = s[i];
+	if (v !== void 0) that.style[s] = v;
+	else if (typeof s == 'object') {
+		for (let i in s) that.style.setProperty(i, s[i]);
 	}
-	return (v !== undefined || typeof s == 'object') ? that : getComputedStyle(that).getPropertyValue(s);
+	return (v !== void 0 || typeof s == 'object') ? that : getComputedStyle(that).getPropertyValue(s);
 };
 NodeList.prototype.css = function(s, v) {
-	let cs = [];
-	for (let i of this) cs.push(i.css(s, v));
-
-	return (v !== undefined || typeof s == 'object') ? this : cs;
+	const cs = [],
+		cond = v === void 0 || typeof s !== 'object';
+	if (cond)
+		for (let i = -1, l = this.length; ++i != l; cs[i] = this.item(i).css(s, v));
+	return cond ? this : cs;
 };
 /*Set property to all elements in NodeList*/
 NodeList.prototype.sProperty = function(p, v) {
 	for (let i of this) i[p] = v;
 	return this;
 };
-/*Set/get property to all elements in NodeList*/
-NodeList.prototype.property = function(p, v) {
-	let vls = [];
-	if (v === undefined)
-		for (let i of this) vls.push(i[p]);
-	else
-		for (let i of this) i[p] = v;
-	return (v === undefined) ? vls : this;
+/*Set/get property to all elements in NodeList or node*/
+Node.prototype.prop = function(s, v) {
+	if (v !== void 0) this[s] = v;
+	else if (typeof s == 'object') {
+		for (let i in s) this[i] = s[i];
+	}
+	return (v !== void 0 || typeof s == 'object') ? this : this[s];
+};
+NodeList.prototype.prop = function(s, v) {
+	const cs = [],
+		cond = v === void 0 || typeof s !== 'object';
+	if (cond) {
+		for (let i = -1, l = this.length; ++i != l; cs[i] = this.item(i).prop(s, v));
+	}
+	return cond ? this : cs;
+};
+/*Find by property value in NodeList*/
+NodeList.prototype.propFilter = function(p, v) {
+	const vls = [];
+	for (let i = -1, a = this.toArray(), l = a.length; ++i != l; vls[i] = v === a[a.indexOf(a[i])][p] ? a[a.indexOf(a[i])] : null);
+	return arrayToNodeList(vls);
 };
 /*Get and set attributes to node or nodelist*/
 Node.prototype.attr = function(s, v) {
 	let that = this;
-	if (v !== undefined) that.sAttr(s, v);
+	if (v !== void 0) that.sAttr(s, v);
 	else if (typeof s == 'object') {
 		for (let i in s) that.sAttr(i, s[i]);
 	}
-	return (v !== undefined || typeof s == 'object') ? that : that.gAttr(s);
+	return (v !== void 0 || typeof s == 'object') ? that : that.gAttr(s);
 };
 NodeList.prototype.attr = function(s, v) {
-	let cs = [];
-	for (let i of this) cs.push(i.attr(s, v));
-
-	return (v !== undefined || typeof s == 'object') ? this : cs;
+	const cs = [],
+		cond = v === void 0 || typeof s !== 'object';
+	if (cond) {
+		for (let i = -1, l = this.length; ++i != l; cs[i] = this.item(i).attr(s, v));
+	}
+	return cond ? this : cs;
 };
 /*Get elements unique path*/
 Node.prototype.path = function() {
-	let that = this,
-		path = [];
-	while (that.parent()) {
-		if (that == that.ownerDocument.documentElement) path.unshift(that.tagName);
-		else {
-			for (var c = 1, e = that; e.previousElementSibling; e = e.previousElementSibling, c++);
-			path.unshift(`${that.tagName}:nth-child(${c})`);
+	let element = this,
+		path = [],
+		previousElementSibling = element => { if (element.previousElementSibling !== 'undefined') { return element.previousElementSibling } else { while (element = element.previousSibling) { if (element.nodeType === 1) { return element } } } };
+
+	while (element.nodeType === Node.ELEMENT_NODE) {
+		let selector = element.nodeName,
+			sibling = element,
+			siblingSelectors = [];
+		while (sibling !== null && sibling.nodeType === Node.ELEMENT_NODE) {
+			siblingSelectors.unshift(sibling.nodeName);
+			sibling = previousElementSibling(sibling);
 		}
-		that = that.parent();
+		if (siblingSelectors[0] !== 'HTML') siblingSelectors[0] = siblingSelectors[0] + ':first-child';
+		selector = siblingSelectors.join('+');
+		path.unshift(selector);
+		element = element.parentNode;
 	}
 	return path.join('>');
 };
 /*Sort elements by value*/
 Node.prototype.sort = function(f, s, o) {
 	let itms = nodeListToArray(this.children);
-	if (typeof s != 'function') o = s, s == undefined;
+	typeof s != 'function' && (o = s, s == void 0);
 	itms.sort((a, b) => (f(a) == f(b)) ? ((!s || (s(a) == s(b))) ? 0 : ((s(a) > s(b)) ? 1 : -1)) : (((f(a) > f(b) && !o) || (f(a) < f(b) && o)) ? 1 : -1));
 	for (i = 0; i < itms.length; ++i) this.appendChild(itms[i]);
 	return this;
 };
 /*Know if element is inside a NodeList*/
-Node.prototype.in = function(nl) { return nodeListToArray((nl instanceof NodeList || nl instanceof HTMLCollection) ? nl : nl.children).includes(this) };
+Node.prototype.in = function(l) { return nodeListToArray((l instanceof NodeList || l instanceof HTMLCollection) ? l : ('string' === typeof l ? QSA(l) : l.children)).includes(this) };
 /*Exclude element from NodeList*/
-NodeList.prototype.not = function() {
-	let a = this.toArray();
-	for (let i of arguments) delete a[a.indexOf(i)];
-	return arrayToNodeList(a)
-};
+NodeList.prototype.not = function(...a) { for (let i = -1, l = a.length, a = this.toArray(); ++i != l; delete a[a.indexOf(a[i])]); return arrayToNodeList(a) };
 /*
 Modify addEventListener function to store all events in an array
 for later use in the function removeEventsListeners
